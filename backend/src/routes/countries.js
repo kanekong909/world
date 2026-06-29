@@ -1,9 +1,10 @@
-import { getCountry, getAllCountries, createCountry, updateCountry, deleteCountry, getCountryPhotos, addCountryPhoto, deleteCountryPhoto } from '../controllers/countries.js'
+import { getCountry, getAllCountries, createCountry, updateCountry, deleteCountry, getCountryPhotos, addCountryPhoto, deleteCountryPhoto, getStats } from '../controllers/countries.js'
 import { authenticate, isAdmin } from '../middleware/auth.js'
 import { Router } from 'express'
 
 const router = Router()
 
+router.get('/stats', getStats)
 router.get('/', getAllCountries)
 router.get('/:code', getCountry)
 router.post('/', authenticate, isAdmin, createCountry)

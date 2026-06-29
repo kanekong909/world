@@ -125,3 +125,44 @@ export const deleteCountryPhoto = async (req, res) => {
     res.status(500).json({ error: 'Error en el servidor' })
   }
 }
+
+// ESTADISTICAS
+export const getStats = async (req, res) => {
+  try {
+    const [mostVoted, mostCommented, mostFavorited, totalCountries, totalUsers] = await Promise.all([
+      pool.query(`
+        SELECT c.name, c.flag_url, c.code, COALESCE(SUM(v.value), 0) as score
+        FROM countries c
+        LEFT JOIN votes v ON v.country_code = c.code
+        GROUP BY c.name, c.flag_url, c.code
+        ORDER BY score DESC LIMIT 5
+      `),
+      pool.query(`
+        SELECT c.name, c.flag_url, c.code, COUNT(cm.id) as total
+        FROM countries c
+        LEFT JOIN comments cm ON cm.country_code = c.code
+        GROUP BY c.name, c.flag_url, c.code
+        ORDER BY total DESC LIMIT 5
+      `),
+      pool.query(`
+        SELECT c.name, c.flag_url, c.code, COUNT(f.id) as total
+        FROM countries c
+        LEFT JOIN favorites f ON f.country_code = c.code
+        GROUP BY c.name, c.flag_url, c.code
+        ORDER BY total DESC LIMIT 5
+      `),
+      pool.query('SELECT COUNT(*) as total FROM countries'),
+      pool.query('SELECT COUNT(*) as total FROM users')
+    ])
+
+    res.json({
+      mostVoted: mostVoted.rows,
+      mostCommented: mostCommented.rows,
+      mostFavorited: mostFavorited.rows,
+      totalCountries: parseInt(totalCountries.rows[0].total),
+      totalUsers: parseInt(totalUsers.rows[0].total)
+    })
+  } catch (err) {
+    res.status(500).json({ error: 'Error en el servidor' })
+  }
+}
