@@ -6,6 +6,7 @@ import authRouter from './routes/auth.js'
 import pool from './db.js'
 import favoritesRouter from './routes/favorites.js'
 import interactionsRouter from './routes/interactions.js'
+import worldcupRouter from './routes/worldcup.js'
 
 dotenv.config()
 
@@ -34,6 +35,7 @@ app.use('/api/countries', countriesRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/favorites', favoritesRouter)
 app.use('/api/interactions', interactionsRouter)
+app.use('/api/worldcup', worldcupRouter)
 
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en puerto ${PORT}`);

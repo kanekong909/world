@@ -51,3 +51,19 @@ export const login = async (req, res) => {
     res.status(500).json({ error: 'Error en el servidor' })
   }
 }
+
+export const getMyComments = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT c.id, c.content, c.created_at, c.country_code, co.name as country_name
+       FROM comments c
+       LEFT JOIN countries co ON co.code = c.country_code
+       WHERE c.user_id = $1
+       ORDER BY c.created_at DESC`,
+      [req.user.id]
+    )
+    res.json(result.rows)
+  } catch (err) {
+    res.status(500).json({ error: 'Error en el servidor' })
+  }
+}
