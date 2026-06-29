@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
+import { usePageTitle } from '../hooks/usePageTitle'
 import api from '../api'
 
 function Country() {
+  usePageTitle(null)
   const { code } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()

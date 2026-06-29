@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import { usePageTitle } from '../hooks/usePageTitle'
 import api from '../api'
 
 function Stats() {
+  usePageTitle('Estadísticas')
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const { bg, surface, border, text, textMuted, textSecondary } = useTheme()

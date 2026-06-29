@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { usePageTitle } from '../hooks/usePageTitle'
 import api from '../api'
 
 function Login() {
+  usePageTitle('Iniciar sesión')
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)

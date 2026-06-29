@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api'
+import { usePageTitle } from '../hooks/usePageTitle'
 import { useTheme } from '../hooks/useTheme'
 
 function Profile() {
+  usePageTitle('Mi perfil')
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [favorites, setFavorites] = useState([])

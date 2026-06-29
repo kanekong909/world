@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { MapContainer, TileLayer, GeoJSON, useMapEvents, useMap } from "react-leaflet";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { usePageTitle } from '../hooks/usePageTitle'
 import api from "../api";
 
 function MapStateKeeper({ mapStateRef }) {
@@ -87,6 +88,7 @@ const regionColors = {
 }
 
 function Map() {
+  usePageTitle(null)
   const [countries, setCountries] = useState(null);
   const [selected, setSelected] = useState(null);
   const [countryInfo, setCountryInfo] = useState(null);

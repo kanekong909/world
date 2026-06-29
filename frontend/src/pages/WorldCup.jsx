@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import CountryAutocomplete from '../components/CountryAutocomplete'
+import { usePageTitle } from '../hooks/usePageTitle'
 import api from '../api'
 
 const stages = [
@@ -12,6 +13,7 @@ const stages = [
 ]
 
 function WorldCup() {
+  usePageTitle('Mundial 2026')
   const [activeTab, setActiveTab] = useState('groups')
   const [groups, setGroups] = useState([])
   const [matches, setMatches] = useState([])
