@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import AdminWorldCup from '../components/AdminWorldCup'
 import api from '../api'
+import { useTheme } from '../hooks/useTheme'
 
 const emptyForm = {
   code: '',
@@ -17,7 +19,7 @@ const emptyForm = {
   world_cup_info: ''
 }
 
-const tabs = ['Países', 'Fotos']
+const tabs = ['Países', 'Fotos', 'Mundial']
 
 function Admin() {
   const [activeTab, setActiveTab] = useState('Países')
@@ -26,6 +28,8 @@ function Admin() {
   const [editing, setEditing] = useState(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState(null)
+  
+  const { bg, surface, border, text, textMuted } = useTheme()
 
   const [selectedCountryForPhotos, setSelectedCountryForPhotos] = useState('')
   const [photos, setPhotos] = useState([])
@@ -148,7 +152,7 @@ function Admin() {
   ]
 
   return (
-    <div style={{ paddingTop: 56, minHeight: '100vh', background: '#f1f5f9' }}>
+    <div style={{ paddingTop: 56, minHeight: '100vh', background: bg }}>
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px 48px' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
@@ -383,6 +387,10 @@ function Admin() {
               </div>
             )}
           </>
+        )}
+
+        {activeTab === 'Mundial' && (
+          <AdminWorldCup onUpdate={() => {}} />
         )}
 
       </div>

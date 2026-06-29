@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../hooks/useTheme'
 import api from '../api'
 
 function Country() {
   const { code } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { bg, surface, border, text, textMuted, textSecondary } = useTheme()
 
   const [country, setCountry] = useState(null)
   const [photos, setPhotos] = useState([])
@@ -17,6 +19,7 @@ function Country() {
   const [commentLoading, setCommentLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [selectedPhoto, setSelectedPhoto] = useState(null)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     loadAll()
@@ -73,6 +76,72 @@ function Country() {
     } finally {
       setCommentLoading(false)
     }
+  }
+
+  const styles = {
+    page: {
+      minHeight: '100vh',
+      background: bg,
+      paddingTop: 56
+    },
+    container: {
+      maxWidth: 720,
+      margin: '0 auto',
+      padding: '24px 16px 48px'
+    },
+    backBtn: {
+      background: 'none',
+      border: 'none',
+      color: textMuted,
+      fontSize: 14,
+      cursor: 'pointer',
+      padding: '0 0 16px',
+      display: 'block'
+    },
+    hero: {
+      background: 'linear-gradient(135deg, #1D9E75 0%, #0F6E56 100%)',
+      borderRadius: 16,
+      padding: '24px 20px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 16,
+      marginBottom: 16,
+      flexWrap: 'wrap'
+    },
+    flag: { width: 80, height: 54, borderRadius: 8, objectFit: 'cover', flexShrink: 0 },
+    heroTitle: { fontSize: 26, fontWeight: 600, color: 'white', margin: '0 0 4px' },
+    heroSub: { fontSize: 14, color: 'rgba(255,255,255,0.8)', margin: '0 0 10px' },
+    badges: { display: 'flex', gap: 8, flexWrap: 'wrap' },
+    badge: { background: 'rgba(255,255,255,0.2)', color: 'white', fontSize: 12, padding: '3px 10px', borderRadius: 20 },
+    actions: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' },
+    votes: { display: 'flex', alignItems: 'center', gap: 10 },
+    voteBtn: { background: surface, border: `1px solid ${border}`, borderRadius: 8, padding: '6px 14px', fontSize: 18, cursor: 'pointer' },
+    voteScore: { fontSize: 18, fontWeight: 600 },
+    actionBtn: { padding: '8px 16px', borderRadius: 8, border: '1px solid', fontSize: 14, cursor: 'pointer' },
+    loginHint: { fontSize: 13, color: textMuted, marginBottom: 16 },
+    statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 16 },
+    stat: { background: surface, borderRadius: 12, padding: '14px 16px', border: `1px solid ${border}` },
+    statIcon: { fontSize: 20, marginBottom: 4 },
+    statLabel: { fontSize: 12, color: textMuted, marginBottom: 2 },
+    statValue: { fontSize: 16, fontWeight: 600, color: text },
+    section: { background: surface, borderRadius: 12, padding: '16px', marginBottom: 16, border: `1px solid ${border}` },
+    sectionTitle: { fontSize: 12, fontWeight: 600, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 },
+    desc: { fontSize: 15, color: textSecondary, lineHeight: 1.7, margin: 0 },
+    wcBox: { background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 12, padding: '16px', marginBottom: 16 },
+    wcTitle: { color: '#92400e', fontWeight: 600, fontSize: 14, marginBottom: 6 },
+    wcText: { color: '#78350f', fontSize: 14, lineHeight: 1.6, margin: 0 },
+    photosGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 },
+    photo: { width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8, cursor: 'pointer' },
+    lightbox: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 16, cursor: 'pointer' },
+    lightboxImg: { maxWidth: '100%', maxHeight: '80vh', borderRadius: 12, objectFit: 'contain' },
+    lightboxCaption: { color: 'white', fontSize: 14, marginTop: 12, textAlign: 'center' },
+    textarea: { width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${border}`, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', marginBottom: 8, fontFamily: 'inherit', background: surface, color: text },
+    commentBtn: { padding: '8px 18px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: 8, fontSize: 14, cursor: 'pointer' },
+    comment: { paddingBottom: 12, marginBottom: 12, borderBottom: `1px solid ${border}` },
+    commentHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: 4 },
+    commentAuthor: { fontSize: 13, color: text, fontWeight: 500 },
+    commentDate: { fontSize: 11, color: textMuted },
+    commentText: { fontSize: 14, color: textSecondary, margin: 0 }
   }
 
   if (loading) return (
@@ -144,6 +213,27 @@ function Country() {
             color: favorited ? '#92400e' : '#475569'
           }}>
             {favorited ? '⭐ Favorito' : '☆ Favorito'}
+          </button>
+
+          {/* Compartir pais */}
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href)
+              setCopied(true)
+              setTimeout(() => setCopied(false), 2000)
+            }}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 8,
+              border: `1px solid ${border}`,
+              background: surface,
+              color: copied ? '#16a34a' : text,
+              fontSize: 14,
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            {copied ? '✓ Copiado' : '🔗 Compartir'}
           </button>
         </div>
 
@@ -262,247 +352,5 @@ function Country() {
   )
 }
 
-const styles = {
-  page: {
-    minHeight: '100vh',
-    background: '#f1f5f9',
-    paddingTop: 56
-  },
-  container: {
-    maxWidth: 720,
-    margin: '0 auto',
-    padding: '24px 16px 48px'
-  },
-  backBtn: {
-    background: 'none',
-    border: 'none',
-    color: '#64748b',
-    fontSize: 14,
-    cursor: 'pointer',
-    padding: '0 0 16px',
-    display: 'block'
-  },
-  hero: {
-    background: 'linear-gradient(135deg, #1D9E75 0%, #0F6E56 100%)',
-    borderRadius: 16,
-    padding: '24px 20px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 16,
-    marginBottom: 16,
-    flexWrap: 'wrap'
-  },
-  flag: {
-    width: 80,
-    height: 54,
-    borderRadius: 8,
-    objectFit: 'cover',
-    flexShrink: 0
-  },
-  heroTitle: {
-    fontSize: 26,
-    fontWeight: 600,
-    color: 'white',
-    margin: '0 0 4px'
-  },
-  heroSub: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    margin: '0 0 10px'
-  },
-  badges: {
-    display: 'flex',
-    gap: 8,
-    flexWrap: 'wrap'
-  },
-  badge: {
-    background: 'rgba(255,255,255,0.2)',
-    color: 'white',
-    fontSize: 12,
-    padding: '3px 10px',
-    borderRadius: 20
-  },
-  actions: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 8,
-    flexWrap: 'wrap'
-  },
-  votes: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10
-  },
-  voteBtn: {
-    background: '#f8fafc',
-    border: '1px solid #e2e8f0',
-    borderRadius: 8,
-    padding: '6px 14px',
-    fontSize: 18,
-    cursor: 'pointer'
-  },
-  voteScore: {
-    fontSize: 18,
-    fontWeight: 600
-  },
-  actionBtn: {
-    padding: '8px 16px',
-    borderRadius: 8,
-    border: '1px solid',
-    fontSize: 14,
-    cursor: 'pointer'
-  },
-  loginHint: {
-    fontSize: 13,
-    color: '#94a3b8',
-    marginBottom: 16
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: 12,
-    marginBottom: 16
-  },
-  stat: {
-    background: 'white',
-    borderRadius: 12,
-    padding: '14px 16px',
-    border: '1px solid #e2e8f0'
-  },
-  statIcon: {
-    fontSize: 20,
-    marginBottom: 4
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#94a3b8',
-    marginBottom: 2
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: 600,
-    color: '#1e293b'
-  },
-  section: {
-    background: 'white',
-    borderRadius: 12,
-    padding: '16px',
-    marginBottom: 16,
-    border: '1px solid #e2e8f0'
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: 600,
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    marginBottom: 10
-  },
-  desc: {
-    fontSize: 15,
-    color: '#475569',
-    lineHeight: 1.7,
-    margin: 0
-  },
-  wcBox: {
-    background: '#fef3c7',
-    border: '1px solid #fcd34d',
-    borderRadius: 12,
-    padding: '16px',
-    marginBottom: 16
-  },
-  wcTitle: {
-    color: '#92400e',
-    fontWeight: 600,
-    fontSize: 14,
-    marginBottom: 6
-  },
-  wcText: {
-    color: '#78350f',
-    fontSize: 14,
-    lineHeight: 1.6,
-    margin: 0
-  },
-  photosGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: 8
-  },
-  photo: {
-    width: '100%',
-    aspectRatio: '1',
-    objectFit: 'cover',
-    borderRadius: 8,
-    cursor: 'pointer'
-  },
-  lightbox: {
-    position: 'fixed',
-    inset: 0,
-    background: 'rgba(0,0,0,0.85)',
-    zIndex: 9999,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    cursor: 'pointer'
-  },
-  lightboxImg: {
-    maxWidth: '100%',
-    maxHeight: '80vh',
-    borderRadius: 12,
-    objectFit: 'contain'
-  },
-  lightboxCaption: {
-    color: 'white',
-    fontSize: 14,
-    marginTop: 12,
-    textAlign: 'center'
-  },
-  textarea: {
-    width: '100%',
-    padding: '10px 12px',
-    borderRadius: 8,
-    border: '1px solid #e2e8f0',
-    fontSize: 14,
-    resize: 'vertical',
-    boxSizing: 'border-box',
-    marginBottom: 8,
-    fontFamily: 'inherit'
-  },
-  commentBtn: {
-    padding: '8px 18px',
-    background: '#3b82f6',
-    color: 'white',
-    border: 'none',
-    borderRadius: 8,
-    fontSize: 14,
-    cursor: 'pointer'
-  },
-  comment: {
-    paddingBottom: 12,
-    marginBottom: 12,
-    borderBottom: '1px solid #f1f5f9'
-  },
-  commentHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginBottom: 4
-  },
-  commentAuthor: {
-    fontSize: 13,
-    color: '#334155'
-  },
-  commentDate: {
-    fontSize: 11,
-    color: '#94a3b8'
-  },
-  commentText: {
-    fontSize: 14,
-    color: '#475569',
-    margin: 0
-  }
-}
 
 export default Country

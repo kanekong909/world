@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { MapContainer, TileLayer, GeoJSON, useMapEvents } from "react-leaflet";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { MapContainer, TileLayer, GeoJSON, useMapEvents, useMap } from "react-leaflet";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
@@ -22,6 +22,70 @@ function MapStateKeeper({ mapStateRef }) {
   return null
 }
 
+function MapRefKeeper({ mapRef }) {
+  const map = useMap()
+  useEffect(() => {
+    mapRef.current = map
+  }, [map])
+  return null
+}
+
+const nameToCode = {
+  'France': 'FRA',
+  'Norway': 'NOR',
+  'French Guiana': 'GUF',
+  'Northern Cyprus': 'CYP',
+  'Somaliland': 'SOM',
+  'Kosovo': 'XKX',
+  'Dhekelia Sovereign Base Area': 'GBR',
+  'US Naval Base Guantanamo Bay': 'USA',
+  'Brazilian Island': 'BRA',
+  'Cyprus No Mans Area': 'CYP',
+  'Siachen Glacier': 'IND',
+  'Baykonur Cosmodrome': 'KAZ',
+  'Akrotiri Sovereign Base Area': 'GBR',
+  'Southern Patagonian Ice Field': 'ARG',
+  'Bir Tawil': 'default',
+  'Indian Ocean Territories': 'AUS',
+  'Coral Sea Islands': 'AUS',
+  'Spratly Islands': 'default',
+  'Clipperton Island': 'FRA',
+  'Ashmore and Cartier Islands': 'AUS',
+  'Bajo Nuevo Bank (Petrel Is.)': 'default',
+  'Serranilla Bank': 'default',
+  'Scarborough Reef': 'default'
+}
+
+const getCode = (feature) => {
+  const code = feature.properties['ISO3166-1-Alpha-3']
+  if (code && code !== '-99') return code
+  return nameToCode[feature.properties.name] || 'default'
+}
+
+const countryRegions = {
+  Africa: ['DZA','AGO','BEN','BWA','BFA','BDI','CMR','CPV','CAF','TCD','COM','COD','COG','CIV','DJI','EGY','GNQ','ERI','ETH','GAB','GMB','GHA','GIN','GNB','KEN','LSO','LBR','LBY','MDG','MWI','MLI','MRT','MUS','MAR','MOZ','NAM','NER','NGA','RWA','STP','SEN','SLE','SOM','ZAF','SSD','SDN','SWZ','TZA','TGO','TUN','UGA','ZMB','ZWE','SHN','REU','MYT','ESH'],
+  Europe: ['ALB','AND','AUT','BLR','BEL','BIH','BGR','HRV','CYP','CZE','DNK','EST','FIN','FR','DEU','GRC','HUN','ISL','IRL','ITA','XKX','LVA','LIE','LTU','LUX','MLT','MDA','MCO','MNE','NLD','MKD','NOR','POL','PRT','ROU','RUS','SMR','SRB','SVK','SVN','ESP','SWE','CHE','UKR','GBR','VAT','GIB','FRO','GGY','IMN','JEY','ALA','SJM'],
+  Asia: ['AFG','ARM','AZE','BHR','BGD','BTN','BRN','KHM','CHN','CYP','GEO','IND','IDN','IRN','IRQ','ISR','JPN','JOR','KAZ','KWT','KGZ','LAO','LBN','MYS','MDV','MNG','MMR','NPL','PRK','OMN','PAK','PSE','PHL','QAT','SAU','SGP','KOR','LKA','SYR','TWN','TJK','THA','TLS','TUR','TKM','ARE','UZB','VNM','YEM'],
+  Americas: ['ATG','ARG','BHS','BRB','BLZ','BOL','BRA','CAN','CHL','COL','CRI','CUB','DMA','DOM','ECU','SLV','GRD','GTM','GUY','HTI','HND','JAM','MEX','NIC','PAN','PRY','PER','KNA','LCA','VCT','SUR','TTO','USA','URY','VEN','GUF','GLP','MTQ','PRI','VIR','CUW','ABW','SXM','BLM','MAF', 'BRA', 'GRL'],
+  Oceania: ['AUS','FJI','KIR','MHL','FSM','NRU','NZL','PLW','PNG','WSM','SLB','TON','TUV','VUT','NCL','PYF','GUM','ASM','COK','NIU','NFK','MNP','TKL','WLF']
+}
+
+const getRegionByCode = (code) => {
+  for (const [region, codes] of Object.entries(countryRegions)) {
+    if (codes.includes(code)) return region
+  }
+  return 'default'
+}
+
+const regionColors = {
+  Africa: { fill: '#f59e0b', border: '#d97706' },
+  Americas: { fill: '#10b981', border: '#059669' },
+  Asia: { fill: '#f97316', border: '#ea580c' },
+  Europe: { fill: '#3b82f6', border: '#2563eb' },
+  Oceania: { fill: '#8b5cf6', border: '#7c3aed' },
+  default: { fill: '#94a3b8', border: '#64748b' }
+}
+
 function Map() {
   const [countries, setCountries] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -32,14 +96,24 @@ function Map() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [commentLoading, setCommentLoading] = useState(false);
-  const { user, mapStateRef } = useAuth();
+  const [wcTeams, setWcTeams] = useState([])
+  const wcTeamsRef = useRef([])
+  const { user, mapStateRef, mapRef } = useAuth();
 
   const navigate = useNavigate();
 
   useEffect(() => {
     fetch("/countries.geojson")
       .then((res) => res.json())
-      .then((data) => setCountries(data));
+      .then((data) => setCountries(data))
+
+      api.get('/api/worldcup/groups')
+        .then(res => {
+          const teams = res.data.flatMap(g => g.teams || [])
+          setWcTeams(teams)
+          wcTeamsRef.current = teams
+        })
+        .catch(() => {})
   }, []);
 
   const loadCountryData = useCallback(
@@ -75,10 +149,10 @@ function Map() {
   );
 
   const handleCountryClick = (feature) => {
-    const code = feature.properties["ISO3166-1-Alpha-3"];
-    setSelected(feature.properties);
-    loadCountryData(code);
-  };
+    const code = getCode(feature)
+    setSelected({ ...feature.properties, resolvedCode: code })
+    loadCountryData(code)
+  }
 
   const handleFavorite = async () => {
     if (!user) return;
@@ -113,20 +187,40 @@ function Map() {
     }
   };
 
+  const getCountryStyle = (feature) => {
+    const code = getCode(feature)
+    const isWC = wcTeamsRef.current.some(t => t.country_code === code)
+
+    if (isWC) {
+      return {
+        fillColor: '#fbbf24',
+        fillOpacity: 0.7,
+        color: '#d97706',
+        weight: 2
+      }
+    }
+
+    const region = getRegionByCode(code)
+    const colors = regionColors[region]
+    return {
+      fillColor: colors.fill,
+      fillOpacity: 0.4,
+      color: colors.border,
+      weight: 1
+    }
+  }
+
   const onEachCountry = (feature, layer) => {
     layer.on({
       click: () => handleCountryClick(feature),
-      mouseover: (e) => e.target.setStyle({ fillOpacity: 0.7, weight: 2 }),
-      mouseout: (e) => e.target.setStyle({ fillOpacity: 0.3, weight: 1 }),
-    });
-  };
-
-  const countryStyle = {
-    fillColor: "#3b82f6",
-    fillOpacity: 0.3,
-    color: "#1d4ed8",
-    weight: 1,
-  };
+      mouseover: (e) => {
+        e.target.setStyle({ fillOpacity: 0.9, weight: 2 })
+      },
+      mouseout: (e) => {
+        e.target.setStyle(getCountryStyle(feature))
+      }
+    })
+  }
 
   return (
     <div
@@ -155,10 +249,11 @@ function Map() {
         {countries && (
           <GeoJSON
             data={countries}
-            style={countryStyle}
+            style={getCountryStyle}
             onEachFeature={onEachCountry}
           />
         )}
+        <MapRefKeeper mapRef={mapRef} />
       </MapContainer>
 
       {selected && (
@@ -403,6 +498,34 @@ function Map() {
           </div>
         </div>
       )}
+
+      {/* Leyenda */}
+      <div style={{
+        position: 'absolute',
+        bottom: 32,
+        left: 16,
+        zIndex: 1000,
+        background: 'rgba(15,23,42,0.85)',
+        borderRadius: 10,
+        padding: '10px 14px',
+        backdropFilter: 'blur(4px)'
+      }}>
+        <p style={{ color: '#94a3b8', fontSize: 11, fontWeight: 600, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          Leyenda
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 14, height: 14, borderRadius: 3, background: '#fbbf24', border: '2px solid #d97706' }} />
+            <span style={{ color: 'white', fontSize: 12 }}>⚽ En el Mundial</span>
+          </div>
+          {Object.entries(regionColors).filter(([k]) => k !== 'default').map(([region, colors]) => (
+            <div key={region} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 14, height: 14, borderRadius: 3, background: colors.fill, border: `1px solid ${colors.border}` }} />
+              <span style={{ color: '#94a3b8', fontSize: 12 }}>{region === 'Americas' ? 'América' : region}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

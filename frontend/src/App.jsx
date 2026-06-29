@@ -8,6 +8,9 @@ import Admin from './pages/Admin'
 import Country from './pages/Country'
 import Navbar from './components/Navbar'
 import NotFound from './pages/NotFound'
+import Profile from './pages/Profile'
+import WorldCup from './pages/WorldCup'
+import Stats from './pages/Stats'
 
 function ProtectedAdmin({ children }) {
   const { user } = useAuth()
@@ -41,6 +44,9 @@ function AppContent() {
             </ProtectedAdmin>
           } />
           <Route path="*" element={<NotFound />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/worldcup" element={<WorldCup />} />
+          <Route path="/stats" element={<Stats />} />
         </Routes>
       )}
     </>
