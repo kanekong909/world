@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
 import { usePageTitle } from '../hooks/usePageTitle'
+import Comments from '../components/Comment'
 import api from '../api'
 
 function Country() {
@@ -311,42 +312,7 @@ function Country() {
 
         {/* Comentarios */}
         <div style={styles.section}>
-          <div style={styles.sectionTitle}>Comentarios ({comments.length})</div>
-
-          {user && (
-            <div style={{ marginBottom: 16 }}>
-              <textarea
-                value={newComment}
-                onChange={e => setNewComment(e.target.value)}
-                placeholder="Escribe un comentario..."
-                rows={3}
-                style={styles.textarea}
-              />
-              <button
-                onClick={handleComment}
-                disabled={commentLoading || !newComment.trim()}
-                style={styles.commentBtn}
-              >
-                {commentLoading ? 'Enviando...' : 'Comentar'}
-              </button>
-            </div>
-          )}
-
-          {comments.length === 0 && (
-            <p style={{ color: '#94a3b8', fontSize: 14 }}>Sin comentarios aún. ¡Sé el primero!</p>
-          )}
-
-          {comments.map(c => (
-            <div key={c.id} style={styles.comment}>
-              <div style={styles.commentHeader}>
-                <strong style={styles.commentAuthor}>{c.user_name}</strong>
-                <span style={styles.commentDate}>
-                  {new Date(c.created_at).toLocaleDateString()}
-                </span>
-              </div>
-              <p style={styles.commentText}>{c.content}</p>
-            </div>
-          ))}
+          <Comments countryCode={code} />
         </div>
 
       </div>
