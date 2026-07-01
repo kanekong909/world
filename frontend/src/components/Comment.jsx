@@ -85,13 +85,21 @@ function CommentItem({ comment, countryCode, onDelete, onReaction, onReply, dept
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: '50%',
-              background: '#3b82f6', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', color: 'white', fontSize: 12, fontWeight: 600, flexShrink: 0
-            }}>
-              {comment.user_name?.charAt(0).toUpperCase()}
-            </div>
+            {comment.avatar_url ? (
+              <img
+                src={comment.avatar_url}
+                alt={comment.user_name}
+                style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+              />
+            ) : (
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%',
+                background: '#3b82f6', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', color: 'white', fontSize: 12, fontWeight: 600, flexShrink: 0
+              }}>
+                {comment.user_name?.charAt(0).toUpperCase()}
+              </div>
+            )}
             <span style={{ fontSize: 13, fontWeight: 600, color: text }}>{comment.user_name}</span>
             <span style={{ fontSize: 11, color: textMuted }}>{timeAgo(comment.created_at)}</span>
           </div>
