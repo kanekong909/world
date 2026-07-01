@@ -6,7 +6,7 @@ export const getComments = async (req, res) => {
     const result = await pool.query(
       `SELECT 
         c.id, c.content, c.image_url, c.created_at, c.parent_id,
-        u.id as user_id, u.name as user_name,
+        u.id as user_id, u.name as user_name, u.avatar_url,
         COALESCE(
           json_agg(
             DISTINCT jsonb_build_object(
@@ -35,7 +35,7 @@ export const getComments = async (req, res) => {
       const replies = await pool.query(
         `SELECT 
           c.id, c.content, c.image_url, c.created_at, c.parent_id,
-          u.id as user_id, u.name as user_name,
+          u.id as user_id, u.name as user_name, u.avatar_url,
           COALESCE(
             json_agg(
               DISTINCT jsonb_build_object(
