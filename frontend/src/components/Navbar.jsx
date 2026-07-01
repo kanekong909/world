@@ -50,8 +50,19 @@ function Navbar() {
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
         {user ? (
           <>
-            <Link to="/profile" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 14 }}>
-              {user.name}
+            <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+              {user.avatar_url ? (
+                <img src={user.avatar_url} alt="avatar" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{
+                  width: 28, height: 28, borderRadius: '50%', background: '#3b82f6',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'white', fontSize: 12, fontWeight: 600
+                }}>
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span style={{ color: '#94a3b8', fontSize: 14 }}>{user.name}</span>
             </Link>
             {user.role === 'admin' && (
               <Link to="/admin" style={{ color: '#fbbf24', textDecoration: 'none', fontSize: 14 }}>
