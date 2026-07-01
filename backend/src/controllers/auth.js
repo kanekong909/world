@@ -67,3 +67,30 @@ export const getMyComments = async (req, res) => {
     res.status(500).json({ error: 'Error en el servidor' })
   }
 }
+
+export const updateAvatar = async (req, res) => {
+  try {
+    const image_url = req.file?.path
+    if (!image_url) return res.status(400).json({ error: 'No se subió imagen' })
+
+    const result = await pool.query(
+      'UPDATE users SET avatar_url = $1 WHERE id = $2 RETURNING id, name, email, role, avatar_url',
+      [image_url, req.user.id]
+    )
+    res.json(result.rows[0])
+  } catch (err) {
+    res.status(500).json({ error: 'Error en el servidor' })
+  }
+}
+
+export const getMe = async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, name, email, role, avatar_url, created_at FROM users WHERE id = $1',
+      [req.user.id]
+    )
+    res.json(result.rows[0])
+  } catch (err) {
+    res.status(500).json({ error: 'Error en el servidor' })
+  }
+}
