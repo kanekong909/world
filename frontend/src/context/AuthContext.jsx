@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
   })
   const mapStateRef = useRef({ center: [20, 0], zoom: 2 })
   const mapRef = useRef(null)
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     const savedToken = localStorage.getItem('token')
@@ -18,6 +19,7 @@ export function AuthProvider({ children }) {
       setToken(savedToken)
       setUser(JSON.parse(savedUser))
     }
+    setLoaded(true)
   }, [])
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, mapStateRef, mapRef, darkMode, toggleDarkMode }}>
+    <AuthContext.Provider value={{ user, token, login, logout, mapStateRef, mapRef, darkMode, toggleDarkMode, loaded }}>
       {children}
     </AuthContext.Provider>
   )

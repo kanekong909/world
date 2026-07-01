@@ -6,7 +6,7 @@ import { usePageTitle } from '../hooks/usePageTitle'
 import api from '../api'
 
 function Profile() {
-  const { user, logout, login } = useAuth()
+  const { user, logout, login, loaded } = useAuth()
   const navigate = useNavigate()
   const { bg, surface, border, text, textMuted } = useTheme()
   const [favorites, setFavorites] = useState([])
@@ -18,9 +18,10 @@ function Profile() {
   usePageTitle('Mi perfil')
 
   useEffect(() => {
+    if (!loaded) return
     if (!user) { navigate('/login'); return }
     loadData()
-  }, [user])
+  }, [user, loaded])
 
   const loadData = async () => {
     setLoading(true)
@@ -114,7 +115,14 @@ function Profile() {
               >
                 {avatarLoading ? '⏳' : '📷'}
               </button>
-              <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatar} />
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', top: 0, left: 0, cursor: 'pointer' }}
+                onChange={handleAvatar}
+              />
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
