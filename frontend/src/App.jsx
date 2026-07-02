@@ -11,6 +11,7 @@ import NotFound from './pages/NotFound'
 import Profile from './pages/Profile'
 import WorldCup from './pages/WorldCup'
 import Stats from './pages/Stats'
+import Landing from './pages/Landing'
 
 function ProtectedAdmin({ children }) {
   const { user } = useAuth()
@@ -21,7 +22,7 @@ function ProtectedAdmin({ children }) {
 
 function AppContent() {
   const location = useLocation()
-  const isMapPage = location.pathname === '/'
+  const isMapPage = location.pathname === '/map'
 
   return (
     <>
@@ -35,18 +36,20 @@ function AppContent() {
       {/* Resto de rutas */}
       {!isMapPage && (
         <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/map" element={null} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/country/:code" element={<Country />} />
+          <Route path="/worldcup" element={<WorldCup />} />
+          <Route path="/stats" element={<Stats />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={
             <ProtectedAdmin>
               <Admin />
             </ProtectedAdmin>
           } />
           <Route path="*" element={<NotFound />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/worldcup" element={<WorldCup />} />
-          <Route path="/stats" element={<Stats />} />
         </Routes>
       )}
     </>

@@ -79,12 +79,12 @@ const getRegionByCode = (code) => {
 }
 
 const regionColors = {
-  Africa: { fill: '#f59e0b', border: '#d97706' },
-  Americas: { fill: '#10b981', border: '#059669' },
-  Asia: { fill: '#f97316', border: '#ea580c' },
-  Europe: { fill: '#3b82f6', border: '#2563eb' },
-  Oceania: { fill: '#8b5cf6', border: '#7c3aed' },
-  default: { fill: '#94a3b8', border: '#64748b' }
+  Africa: { fill: '#f59e0b', border: '#d97706', glow: 'rgba(245, 158, 11, 0.2)' },
+  Americas: { fill: '#10b981', border: '#059669', glow: 'rgba(16, 185, 129, 0.2)' },
+  Asia: { fill: '#f97316', border: '#ea580c', glow: 'rgba(249, 115, 22, 0.2)' },
+  Europe: { fill: '#3b82f6', border: '#2563eb', glow: 'rgba(59, 130, 246, 0.2)' },
+  Oceania: { fill: '#8b5cf6', border: '#7c3aed', glow: 'rgba(139, 92, 246, 0.2)' },
+  default: { fill: '#94a3b8', border: '#64748b', glow: 'rgba(148, 163, 184, 0.1)' }
 }
 
 function Map() {
@@ -101,7 +101,6 @@ function Map() {
   const [wcTeams, setWcTeams] = useState([])
   const wcTeamsRef = useRef([])
   const { user, mapStateRef, mapRef } = useAuth();
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -198,7 +197,8 @@ function Map() {
         fillColor: '#fbbf24',
         fillOpacity: 0.7,
         color: '#d97706',
-        weight: 2
+        weight: 2,
+        dashArray: null
       }
     }
 
@@ -208,7 +208,8 @@ function Map() {
       fillColor: colors.fill,
       fillOpacity: 0.4,
       color: colors.border,
-      weight: 1
+      weight: 1,
+      dashArray: null
     }
   }
 
@@ -216,10 +217,17 @@ function Map() {
     layer.on({
       click: () => handleCountryClick(feature),
       mouseover: (e) => {
-        e.target.setStyle({ fillOpacity: 0.9, weight: 2 })
+        const target = e.target
+        target.setStyle({ 
+          fillOpacity: 0.9, 
+          weight: 3,
+          color: '#3b82f6'
+        })
+        target.bringToFront()
       },
       mouseout: (e) => {
-        e.target.setStyle(getCountryStyle(feature))
+        const target = e.target
+        target.setStyle(getCountryStyle(feature))
       }
     })
   }
@@ -230,8 +238,11 @@ function Map() {
         width: "100vw",
         height: "100vh",
         position: "relative",
+        paddingTop: "64px",
         overflow: "hidden",
-      }}a
+        background: "#0f172a",
+        boxSizing: "border-box"
+      }}
     >
       <MapContainer
         center={mapStateRef.current.center}
@@ -241,11 +252,15 @@ function Map() {
         maxBounds={[[-90, -180], [90, 180]]}
         maxBoundsViscosity={1.0}
         worldCopyJump={false}
-        style={{ width: "100vw", height: "100vh" }}
+        style={{
+          width: "100vw", 
+          height: "calc(100vh - 64px)", // <- Resta la altura del navbar
+          position: "relative"
+         }}
       >
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; OpenStreetMap contributors"
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; CartoDB'
         />
         <MapStateKeeper mapStateRef={mapStateRef} />
         {countries && (
@@ -258,26 +273,95 @@ function Map() {
         <MapRefKeeper mapRef={mapRef} />
       </MapContainer>
 
+      {/* Header con título y búsqueda */}
+      <div style={{
+        position: 'absolute',
+        top: 20,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 1000,
+        background: 'rgba(15, 23, 42, 0.85)',
+        backdropFilter: 'blur(12px)',
+        borderRadius: 16,
+        padding: '12px 24px',
+        border: '1px solid rgba(255,255,255,0.05)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        boxShadow: '0 20px 40px -12px rgba(0,0,0,0.5)'
+      }}>
+        <span style={{ fontSize: 20 }}>🗺️</span>
+        <h1 style={{
+          color: 'white',
+          fontSize: 18,
+          fontWeight: 600,
+          margin: 0,
+          letterSpacing: '-0.01em'
+        }}>
+          Mapa Global
+        </h1>
+        <div style={{
+          width: 1,
+          height: 24,
+          background: 'rgba(255,255,255,0.1)'
+        }} />
+        <span style={{
+          color: '#94a3b8',
+          fontSize: 13,
+          fontWeight: 400
+        }}>
+          {countries?.features?.length || 0} países
+        </span>
+        {user && (
+          <button
+            onClick={() => navigate('/profile')}
+            style={{
+              background: 'rgba(59, 130, 246, 0.2)',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: 8,
+              padding: '4px 12px',
+              color: '#60a5fa',
+              fontSize: 12,
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'rgba(59, 130, 246, 0.3)'
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'rgba(59, 130, 246, 0.2)'
+            }}
+          >
+            👤 {user.name}
+          </button>
+        )}
+      </div>
+
       {selected && (
         <div
           style={{
             position: "absolute",
-            top: 78,
-            right: 16,
+            top: 90,
+            right: 24,
             zIndex: 1000,
-            background: "white",
-            borderRadius: 16,
-            boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-            width: 280,
-            overflow: "hidden",
+            background: "rgba(15, 23, 42, 0.92)",
+            backdropFilter: "blur(16px)",
+            borderRadius: 20,
+            boxShadow: "0 25px 50px -12px rgba(0,0,0,0.6)",
+            width: 320,
+            maxHeight: "calc(100vh - 140px)",
+            overflow: "auto",
+            border: "1px solid rgba(255,255,255,0.05)",
+            animation: "slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
           }}
         >
-          {/* Header verde */}
+          {/* Header con bandera */}
           <div
             style={{
-              background: "linear-gradient(135deg, #1D9E75 0%, #0F6E56 100%)",
-              padding: "16px",
+              background: "linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(124, 58, 237, 0.2))",
+              padding: "20px 20px 16px",
               position: "relative",
+              borderBottom: "1px solid rgba(255,255,255,0.05)"
             }}
           >
             <button
@@ -287,35 +371,45 @@ function Map() {
               }}
               style={{
                 position: "absolute",
-                top: 10,
-                right: 10,
-                background: "rgba(255,255,255,0.2)",
-                border: "none",
-                color: "white",
-                width: 24,
-                height: 24,
+                top: 12,
+                right: 12,
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                color: "#94a3b8",
+                width: 28,
+                height: 28,
                 borderRadius: "50%",
                 cursor: "pointer",
                 fontSize: 14,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                transition: "all 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = "rgba(255,255,255,0.1)"
+                e.target.style.color = "white"
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = "rgba(255,255,255,0.05)"
+                e.target.style.color = "#94a3b8"
               }}
             >
               ✕
             </button>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               {countryInfo?.flag_url && (
                 <img
                   src={countryInfo.flag_url}
                   alt={selected.name}
                   style={{
-                    width: 48,
-                    height: 32,
-                    borderRadius: 4,
+                    width: 56,
+                    height: 36,
+                    borderRadius: 6,
                     objectFit: "cover",
                     flexShrink: 0,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
                   }}
                 />
               )}
@@ -323,62 +417,95 @@ function Map() {
                 <h2
                   style={{
                     color: "white",
-                    fontSize: 17,
-                    fontWeight: 600,
+                    fontSize: 20,
+                    fontWeight: 700,
                     margin: 0,
+                    letterSpacing: "-0.01em"
                   }}
                 >
                   {selected.name}
                 </h2>
                 <p
                   style={{
-                    color: "rgba(255,255,255,0.75)",
+                    color: "#94a3b8",
                     fontSize: 12,
                     margin: 0,
+                    fontFamily: "monospace"
                   }}
                 >
                   {selected["ISO3166-1-Alpha-3"]}
+                  {wcTeamsRef.current.some(t => t.country_code === selected["ISO3166-1-Alpha-3"]) && (
+                    <span style={{ marginLeft: 8, color: '#fbbf24' }}>⚽ Mundial 2026</span>
+                  )}
                 </p>
               </div>
             </div>
           </div>
 
           {/* Cuerpo */}
-          <div style={{ padding: 16 }}>
+          <div style={{ padding: "16px 20px 20px" }}>
             {loading && (
-              <p style={{ color: "#94a3b8", fontSize: 13, margin: 0 }}>
-                Cargando...
-              </p>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                padding: '20px 0',
+                gap: 8
+              }}>
+                <span style={{
+                  display: 'inline-block',
+                  width: 16,
+                  height: 16,
+                  border: '2px solid rgba(255,255,255,0.1)',
+                  borderTopColor: '#3b82f6',
+                  borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite'
+                }} />
+                <span style={{ color: "#94a3b8", fontSize: 13 }}>Cargando...</span>
+              </div>
             )}
 
             {!loading && countryInfo && (
-              <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.8 }}>
+              <div style={{ 
+                fontSize: 13, 
+                color: "#cbd5e1", 
+                lineHeight: 2
+              }}>
                 {countryInfo.capital && (
-                  <div
-                    style={{ display: "flex", justifyContent: "space-between" }}
-                  >
+                  <div style={{ 
+                    display: "flex", 
+                    justifyContent: "space-between",
+                    padding: '4px 0',
+                    borderBottom: '1px solid rgba(255,255,255,0.03)'
+                  }}>
                     <span style={{ color: "#94a3b8" }}>Capital</span>
-                    <span style={{ fontWeight: 500, color: "#1e293b" }}>
+                    <span style={{ fontWeight: 500, color: "white" }}>
                       {countryInfo.capital}
                     </span>
                   </div>
                 )}
                 {countryInfo.population && (
-                  <div
-                    style={{ display: "flex", justifyContent: "space-between" }}
-                  >
+                  <div style={{ 
+                    display: "flex", 
+                    justifyContent: "space-between",
+                    padding: '4px 0',
+                    borderBottom: '1px solid rgba(255,255,255,0.03)'
+                  }}>
                     <span style={{ color: "#94a3b8" }}>Población</span>
-                    <span style={{ fontWeight: 500, color: "#1e293b" }}>
+                    <span style={{ fontWeight: 500, color: "white" }}>
                       {Number(countryInfo.population).toLocaleString()}
                     </span>
                   </div>
                 )}
                 {countryInfo.region && (
-                  <div
-                    style={{ display: "flex", justifyContent: "space-between" }}
-                  >
+                  <div style={{ 
+                    display: "flex", 
+                    justifyContent: "space-between",
+                    padding: '4px 0',
+                    borderBottom: '1px solid rgba(255,255,255,0.03)'
+                  }}>
                     <span style={{ color: "#94a3b8" }}>Región</span>
-                    <span style={{ fontWeight: 500, color: "#1e293b" }}>
+                    <span style={{ fontWeight: 500, color: "white" }}>
                       {countryInfo.region}
                     </span>
                   </div>
@@ -386,59 +513,74 @@ function Map() {
                 {countryInfo.world_cup_info && (
                   <div
                     style={{
-                      marginTop: 10,
-                      background: "#fef3c7",
-                      borderRadius: 8,
-                      padding: "8px 10px",
+                      marginTop: 12,
+                      background: "rgba(251, 191, 36, 0.1)",
+                      border: "1px solid rgba(251, 191, 36, 0.2)",
+                      borderRadius: 10,
+                      padding: "10px 14px",
                       fontSize: 12,
-                      color: "#78350f",
+                      color: "#fbbf24",
+                      lineHeight: 1.6
                     }}
                   >
-                    🏆{" "}
-                    {countryInfo.world_cup_info.length > 80
-                      ? countryInfo.world_cup_info.slice(0, 80) + "..."
-                      : countryInfo.world_cup_info}
+                    🏆 {countryInfo.world_cup_info}
                   </div>
                 )}
               </div>
             )}
 
             {!loading && !countryInfo && (
-              <p style={{ color: "#94a3b8", fontSize: 13, margin: 0 }}>
+              <p style={{ color: "#94a3b8", fontSize: 13, margin: 0, textAlign: 'center', padding: '12px 0' }}>
                 Sin información disponible aún.
               </p>
             )}
 
-            {/* Votos rápidos */}
+            {/* Interacciones */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                margin: "12px 0 0",
-                paddingTop: 12,
-                borderTop: "1px solid #f1f5f9",
+                margin: "16px 0 0",
+                paddingTop: 16,
+                borderTop: "1px solid rgba(255,255,255,0.05)",
+                flexWrap: 'wrap'
               }}
             >
               <button
                 onClick={() => handleVote(1)}
                 disabled={!user}
                 style={{
-                  background: "#f0fdf4",
-                  border: "1px solid #bbf7d0",
-                  borderRadius: 6,
-                  padding: "4px 10px",
+                  background: "rgba(16, 185, 129, 0.15)",
+                  border: "1px solid rgba(16, 185, 129, 0.2)",
+                  borderRadius: 8,
+                  padding: "6px 12px",
                   cursor: user ? "pointer" : "not-allowed",
                   fontSize: 14,
+                  color: "#34d399",
+                  transition: "all 0.2s",
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}
+                onMouseEnter={(e) => {
+                  if (user) {
+                    e.target.style.background = "rgba(16, 185, 129, 0.25)"
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "rgba(16, 185, 129, 0.15)"
                 }}
               >
-                <img src="/icons/like.svg" alt="Me gusta" style={{ width: 18 }} />
+                👍
               </button>
               <span
                 style={{
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: 600,
-                  color: votes >= 0 ? "#16a34a" : "#dc2626",
+                  color: votes >= 0 ? "#34d399" : "#f87171",
+                  minWidth: 30,
+                  textAlign: 'center'
                 }}
               >
                 {votes > 0 ? `+${votes}` : votes}
@@ -447,30 +589,49 @@ function Map() {
                 onClick={() => handleVote(-1)}
                 disabled={!user}
                 style={{
-                  background: "#fef2f2",
-                  border: "1px solid #fecaca",
-                  borderRadius: 6,
-                  padding: "4px 10px",
+                  background: "rgba(239, 68, 68, 0.15)",
+                  border: "1px solid rgba(239, 68, 68, 0.2)",
+                  borderRadius: 8,
+                  padding: "6px 12px",
                   cursor: user ? "pointer" : "not-allowed",
                   fontSize: 14,
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  alignItems: 'center'
+                  color: "#f87171",
+                  transition: "all 0.2s",
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}
+                onMouseEnter={(e) => {
+                  if (user) {
+                    e.target.style.background = "rgba(239, 68, 68, 0.25)"
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "rgba(239, 68, 68, 0.15)"
                 }}
               >
-                <img src="/icons/dislike.svg" alt="No me gusta" style={{ width: 18 }} />
+                👎
               </button>
               <button
                 onClick={handleFavorite}
                 disabled={!user}
                 style={{
                   marginLeft: "auto",
-                  background: favorited ? "#fef3c7" : "#f8fafc",
-                  border: `1px solid ${favorited ? "#fcd34d" : "#e2e8f0"}`,
-                  borderRadius: 6,
-                  padding: "4px 10px",
+                  background: favorited ? "rgba(251, 191, 36, 0.2)" : "rgba(255,255,255,0.05)",
+                  border: `1px solid ${favorited ? "rgba(251, 191, 36, 0.3)" : "rgba(255,255,255,0.1)"}`,
+                  borderRadius: 8,
+                  padding: "6px 12px",
                   cursor: user ? "pointer" : "not-allowed",
-                  fontSize: 14,
+                  fontSize: 16,
+                  transition: "all 0.2s"
+                }}
+                onMouseEnter={(e) => {
+                  if (user) {
+                    e.target.style.background = favorited ? "rgba(251, 191, 36, 0.3)" : "rgba(255,255,255,0.1)"
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = favorited ? "rgba(251, 191, 36, 0.2)" : "rgba(255,255,255,0.05)"
                 }}
               >
                 {favorited ? "⭐" : "☆"}
@@ -484,15 +645,25 @@ function Map() {
               }
               style={{
                 width: "100%",
-                padding: "10px",
-                background: "#3b82f6",
+                padding: "12px",
+                background: "linear-gradient(135deg, #2563eb, #7c3aed)",
                 color: "white",
                 border: "none",
-                borderRadius: 8,
+                borderRadius: 10,
                 fontSize: 14,
                 fontWeight: 600,
                 cursor: "pointer",
-                marginTop: 12,
+                marginTop: 14,
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                boxShadow: "0 10px 20px -8px rgba(37, 99, 235, 0.3)"
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = "translateY(-2px)"
+                e.target.style.boxShadow = "0 20px 30px -8px rgba(37, 99, 235, 0.4)"
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = "translateY(0)"
+                e.target.style.boxShadow = "0 10px 20px -8px rgba(37, 99, 235, 0.3)"
               }}
             >
               Ver página completa →
@@ -501,33 +672,191 @@ function Map() {
         </div>
       )}
 
-      {/* Leyenda */}
+      {/* Leyenda mejorada */}
       <div style={{
         position: 'absolute',
         bottom: 32,
-        left: 16,
+        left: 24,
         zIndex: 1000,
-        background: 'rgba(15,23,42,0.85)',
-        borderRadius: 10,
-        padding: '10px 14px',
-        backdropFilter: 'blur(4px)'
+        background: 'rgba(15, 23, 42, 0.85)',
+        backdropFilter: 'blur(12px)',
+        borderRadius: 12,
+        padding: '14px 18px',
+        border: '1px solid rgba(255,255,255,0.05)',
+        boxShadow: '0 10px 30px -8px rgba(0,0,0,0.3)'
       }}>
-        <p style={{ color: '#94a3b8', fontSize: 11, fontWeight: 600, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <p style={{ 
+          color: '#94a3b8', 
+          fontSize: 10, 
+          fontWeight: 700, 
+          margin: '0 0 10px', 
+          textTransform: 'uppercase', 
+          letterSpacing: '0.08em'
+        }}>
           Leyenda
         </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 14, height: 14, borderRadius: 3, background: '#fbbf24', border: '2px solid #d97706' }} />
-            <span style={{ color: 'white', fontSize: 12 }}>⚽ En el Mundial</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ 
+              width: 16, 
+              height: 16, 
+              borderRadius: 4, 
+              background: '#fbbf24', 
+              border: '2px solid #d97706',
+              boxShadow: '0 0 12px rgba(251, 191, 36, 0.3)'
+            }} />
+            <span style={{ color: 'white', fontSize: 12, fontWeight: 500 }}>⚽ En el Mundial</span>
           </div>
           {Object.entries(regionColors).filter(([k]) => k !== 'default').map(([region, colors]) => (
-            <div key={region} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 14, height: 14, borderRadius: 3, background: colors.fill, border: `1px solid ${colors.border}` }} />
-              <span style={{ color: '#94a3b8', fontSize: 12 }}>{region === 'Americas' ? 'América' : region}</span>
+            <div key={region} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ 
+                width: 16, 
+                height: 16, 
+                borderRadius: 4, 
+                background: colors.fill, 
+                border: `2px solid ${colors.border}`,
+                opacity: 0.6
+              }} />
+              <span style={{ color: '#94a3b8', fontSize: 12 }}>
+                {region === 'Americas' ? 'América' : region}
+              </span>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Controles de zoom personalizados */}
+      <div style={{
+        position: 'absolute',
+        bottom: 32,
+        right: 24,
+        zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8
+      }}>
+        <button
+          onClick={() => {
+            const map = mapRef.current
+            if (map) map.zoomIn()
+          }}
+          style={{
+            width: 40,
+            height: 40,
+            background: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.05)',
+            borderRadius: 10,
+            color: 'white',
+            fontSize: 20,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = 'rgba(59, 130, 246, 0.3)'
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'rgba(15, 23, 42, 0.85)'
+          }}
+        >
+          +
+        </button>
+        <button
+          onClick={() => {
+            const map = mapRef.current
+            if (map) map.zoomOut()
+          }}
+          style={{
+            width: 40,
+            height: 40,
+            background: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.05)',
+            borderRadius: 10,
+            color: 'white',
+            fontSize: 20,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = 'rgba(59, 130, 246, 0.3)'
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'rgba(15, 23, 42, 0.85)'
+          }}
+        >
+          −
+        </button>
+        <button
+          onClick={() => {
+            const map = mapRef.current
+            if (map) map.setView([20, 0], 2)
+          }}
+          style={{
+            width: 40,
+            height: 40,
+            background: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.05)',
+            borderRadius: 10,
+            color: '#94a3b8',
+            fontSize: 14,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = 'rgba(59, 130, 246, 0.3)'
+            e.target.style.color = 'white'
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'rgba(15, 23, 42, 0.85)'
+            e.target.style.color = '#94a3b8'
+          }}
+        >
+          ⊙
+        </button>
+      </div>
+
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateX(20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+          }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar {
+          width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #3b82f6;
+          border-radius: 2px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #2563eb;
+        }
+      `}</style>
     </div>
   );
 }

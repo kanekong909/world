@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
 import { usePageTitle } from '../hooks/usePageTitle'
 import Comments from '../components/Comment'
+import CountryMiniMap from '../components/CountryMiniMap'
 import api from '../api'
 
 function Country() {
@@ -158,7 +159,7 @@ function Country() {
       <p style={{ fontSize: 48, marginBottom: 16 }}>🌍</p>
       <h2 style={{ color: '#1e293b', marginBottom: 8 }}>País sin información aún</h2>
       <p style={{ color: '#94a3b8', marginBottom: 24 }}>El administrador aún no ha cargado datos para este país.</p>
-      <button onClick={() => navigate('/')} style={styles.backBtn}>← Volver al mapa</button>
+      <button onClick={() => navigate('/map')} style={styles.backBtn}>← Volver al mapa</button>
     </div>
   )
 
@@ -178,7 +179,7 @@ function Country() {
       <div style={styles.container}>
 
         {/* Botón volver */}
-        <button onClick={() => navigate('/')} style={styles.backBtn}>
+        <button onClick={() => navigate('/map')} style={styles.backBtn}>
           ← Volver al mapa
         </button>
 
@@ -283,6 +284,12 @@ function Country() {
             <p style={styles.desc}>{country.description}</p>
           </div>
         )}
+
+        {/* Mini mapa */}
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>Ubicación</div>
+          <CountryMiniMap countryCode={code} countryName={country?.name} />
+        </div>
 
         {/* Mundial */}
         {country.world_cup_info && (

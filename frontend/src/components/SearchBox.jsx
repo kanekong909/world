@@ -39,7 +39,7 @@ function SearchBox({ countries }) {
     setResults([])
     setOpen(false)
 
-    const isMap = location.pathname === '/'
+    const isMap = location.pathname === '/map'
 
     if (isMap && mapRef.current) {
       // Busca las coordenadas del país en el GeoJSON
